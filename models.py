@@ -3,7 +3,41 @@ import torch.nn as nn
 import torchvision
 from torchinfo import summary
 
-class Feature_Model(nn.Module):
+
+class VGG16(nn.Module):
+	def __init__(self) -> None:
+		super().__init__()
+
+		self.model = torchvision.models.vgg16(weights='DEFAULT')
+		self.model = self.model.features
+		for param in self.model.parameters():
+			param.requires_grad = False
+		
+		self.AvgPool = nn.AvgPool2d(kernel_size=(2,2), stride=(2,2))
+		self.flatten = nn.Flatten()
+ 
+	def forward(self, x):
+		x = self.model(x)
+		x = self.AvgPool(x)
+		x = self.flatten(x)
+		return x
+	
+
+class ResNet50(nn.Module):
+	def __init__(self) -> None:
+		super().__init__()
+
+		self.model = torchvision.models.resnet50(weights='DEFAULT')
+		self.model.fc = nn.Identity()
+		for param in self.model.parameters():
+			param.requires_grad = False
+ 
+	def forward(self, x):
+		x = self.model(x)
+		return x
+
+
+class FeatureExtractor(nn.Module):
 	def __init__(self) -> None:
 		super().__init__()
 
@@ -22,7 +56,7 @@ class Feature_Model(nn.Module):
 		self.act5 = nn.ReLU() 
 		self.conv6 = nn.Conv2d(128, 256, kernel_size=(3,3), stride=2, padding=1)
 		self.act6 = nn.ReLU()
-		self.conv7 = nn.Conv2d(256, 512, kernel_size=(3,3), stride=1)
+		self.conv7 = nn.Conv2d(256, 512, kernel_size=(3,3), stride=2, padding=1)
 		self.act7 = nn.ReLU()
 		self.pool2 = nn.AvgPool2d(kernel_size=(2,2), stride=(2,2))
 
@@ -42,39 +76,7 @@ class Feature_Model(nn.Module):
 		return x
 	
 
-class VGG16_Feature_Model(nn.Module):
-	def __init__(self) -> None:
-		super().__init__()
-
-		self.model = torchvision.models.vgg16(torchvision.models.VGG16_Weights.DEFAULT)
-		self.model = self.model.features
-		for param in self.model.parameters():
-			param.requires_grad = False
-		
-		self.AvgPool = nn.AvgPool2d(kernel_size=(2,2), stride=(1,1))
-		self.flatten = nn.Flatten()
- 
-	def forward(self, x):
-		x = self.model(x)
-		x = self.AvgPool(x)
-		x = self.flatten(x)
-		return x
-	
-
-class Inception_Feature_Model(nn.Module):
-	def __init__(self) -> None:
-		super().__init__()
-
-		self.model = torchvision.models.inception_v3(weights=torchvision.models.Inception_V3_Weights.DEFAULT)
-		self.model.fc = nn.Identity()
-		for param in self.model.parameters():
-			param.requires_grad = False
- 
-	def forward(self, x):
-		return self.model(x)
-
-
-class Encoder(nn.Module):
+class ImageEncoder(nn.Module):
 	def __init__(self):
 		super().__init__()
 
@@ -97,7 +99,7 @@ class Encoder(nn.Module):
 		self.act6 = nn.ReLU()
 
 		self.flatten = nn.Flatten()
-		self.linear1 = nn.Linear(in_features=3*3*256, out_features=1024)
+		self.linear1 = nn.Linear(in_features=4*4*256, out_features=2048)
 		self.act7 = nn.ReLU()
 
 
@@ -112,14 +114,14 @@ class Encoder(nn.Module):
 		return x	
 
 
-class Decoder(nn.Module):
-	def __init__(self):
+class ImageDecoder(nn.Module):
+	def __init__(self, input_features):
 		super().__init__()
 
-		self.linear1 = nn.Linear(in_features=1024, out_features=3*3*256)
+		self.linear1 = nn.Linear(in_features=input_features, out_features=4*4*256)
 		self.act1 = nn.ReLU()
 
-		self.convtranspose1 = nn.ConvTranspose2d(in_channels=128, out_channels=128, kernel_size=3, stride=2, padding=1, output_padding=1)
+		self.convtranspose1 = nn.ConvTranspose2d(in_channels=256, out_channels=128, kernel_size=3, stride=2, padding=1, output_padding=1)
 		self.act2 = nn.ReLU()
 
 		self.convtranspose2 = nn.ConvTranspose2d(in_channels=128, out_channels=64, kernel_size=3, stride=2, padding=1, output_padding=1)
@@ -140,7 +142,7 @@ class Decoder(nn.Module):
 
 	def forward(self, x):
 		x = self.act1(self.linear1(x))
-		x = torch.reshape(x, (-1, 256, 3, 3))
+		x = torch.reshape(x, (-1, 256, 4, 4))
 		x = self.act2(self.convtranspose1(x))
 		x = self.act3(self.convtranspose2(x))
 		x = self.act4(self.convtranspose3(x))
@@ -150,7 +152,7 @@ class Decoder(nn.Module):
 		return x
 	
 
-class Classification_Network(nn.Module):
+class Classifier(nn.Module):
 	def __init__(self, input_features):
 		super().__init__()
 

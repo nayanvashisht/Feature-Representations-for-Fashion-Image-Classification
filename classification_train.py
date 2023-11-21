@@ -19,6 +19,9 @@ import models
 import utils
 import arguments
 import losses
+import config
+import warnings
+warnings.filterwarnings("ignore")
 
 
 # Lightning Module
@@ -27,9 +30,11 @@ class Model_LightningModule(pl.LightningModule):
 		super().__init__()
 		self.args = args
 
-		# Model
-		self.feature_extractor = models.Feature_Model()
-		self.classifer = models.Classification_Network(2048)
+		# Model as Manual Arguments
+		self.feature_extractor = config.Cross_Classification_Encoder_Classifier["feature_extractor"]
+		for params in self.feature_extractor.parameters():
+			params.requires_grad = False
+		self.classifer = config.Cross_Classification_Encoder_Classifier["classifier"]
 		self.save_hyperparameters()
 
 		# Loss
@@ -70,40 +75,47 @@ class Model_LightningModule(pl.LightningModule):
 		
 	# Configure Optimizers
 	def configure_optimizers(self):
-		optimizer = torch.optim.Adam(itertools.chain(self.feature_extractor.parameters(), self.classifer.parameters()), lr=1e-3)
+		optimizer = torch.optim.Adam(itertools.chain(self.feature_extractor.parameters(), self.classifer.parameters()), lr=1e-4)
 		return [optimizer]
 
 
 # Main Function
 def main(args):
-	# Names
-	model_name = args.model_name
+	# Manual Arguments
+	model_name = config.Cross_Classification_Encoder_Classifier["name"]
+	transform_type = "scratch"
 
 
 	# Get Datasets
-	Train_DataLoader_Module = datasets.DataLoader_Module(
+	Train_DataLoader_Module = datasets.Classification_DataLoader_Module(
 		dataset_path="data/training.csv",
 		images_path="data/images",
 		setting="train",
-		transform_type="scratch",
+		transform_type=transform_type,
 		batch_size=args.batch_size,
-		num_workers=16
+		num_workers=64
 	)
 	Train_Dataloader = Train_DataLoader_Module.dataloader()
 	
-	Valid_DataLoader_Module = datasets.DataLoader_Module(
+	Valid_DataLoader_Module = datasets.Classification_DataLoader_Module(
 		dataset_path="data/validation.csv",
 		images_path="data/images",
 		setting="valid",
-		transform_type="scratch",
+		transform_type=transform_type,
 		batch_size=args.batch_size,
-		num_workers=16
+		num_workers=64
 	)
 	Valid_Dataloader = Valid_DataLoader_Module.dataloader()
 
 
 	# Lightning Module
 	Model = Model_LightningModule(args)
+
+	# Loading Weights
+	ckpt = torch.load("checkpoints/Encoder_Decoder/best_model.ckpt")
+	encoder_weights = dict(filter(lambda k: 'encoder' in k[0], ckpt['state_dict'].items()))
+	encoder_weights = {k.split('.', 1)[1]: v for k, v in encoder_weights.items()}
+	Model.feature_extractor.load_state_dict(encoder_weights, strict=True)
 
 
 	# Checkpoint Callbacks
@@ -130,7 +142,6 @@ def main(args):
 	# PyTorch Lightning Trainer
 	trainer = pl.Trainer(
 		accelerator="gpu",
-		strategy=DDPStrategy(find_unused_parameters=False),
 		devices = args.gpu,
 		callbacks=[best_checkpoint_callback, utils.LitProgressBar()],
 		num_nodes=args.num_nodes,
@@ -151,7 +162,10 @@ def main(args):
 
 	# Evaluate the Model
 	if args.evaluate:
-		print ("-"*25 + " Starting Evaluation " + "-"*25)
+		print ("-"*25 + " Starting Evaluation on Vvalidation Set " + "-"*25)
+		trainer.validate(Model, Valid_Dataloader, ckpt_path=args.resume_ckpt_path)
+
+		print ("-"*25 + " Starting Evaluation on Test Set " + "-"*25)
 		trainer.validate(Model, Valid_Dataloader, ckpt_path=args.resume_ckpt_path)
 
 
@@ -162,17 +176,13 @@ if __name__ == '__main__':
 	# Get Arguments
 	args = arguments.Parse_Arguments()
 
-
-	# Name-Arguments
-	args.model_name = "scratch"
-
 	# Main Function
 	main(args)
 
 """
-python3 scratch_train.py \
+python3 classification_train.py \
 --train \
 --main_path "/home/krishna/Applied-ML-Project" \
 --epochs 20 \
---batch_size 16
+--batch_size 32
 """
