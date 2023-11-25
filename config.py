@@ -16,13 +16,15 @@ classification_scratch_train_transform = torchvision.transforms.Compose([
 				transforms.RandomAffine(degrees=45)
 			], p=0.5),
 		transforms.Resize((image_height, image_width)),
-		transforms.ToTensor()
+		transforms.ToTensor(),
+		transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
 	]
 )
 
 classification_scratch_test_transform = torchvision.transforms.Compose([
 		transforms.Resize((image_height, image_width)),
-		transforms.ToTensor()
+		transforms.ToTensor(),
+		transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
 	]
 )
 
@@ -65,19 +67,22 @@ classification_ResNet50_test_transform = torchvision.transforms.Compose([
 # Reconstruction Transforms
 reconstruction_scratch_train_transform = torchvision.transforms.Compose([
 		transforms.Resize((image_height, image_width)),
-		transforms.ToTensor()
+		transforms.ToTensor(),
+		transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
 	]
 )
 
 reconstruction_scratch_test_transform = torchvision.transforms.Compose([
 		transforms.Resize((image_height, image_width)),
-		transforms.ToTensor()
+		transforms.ToTensor(),
+		transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
 	]
 )
 
 reconstruction_scratch_target_transform = torchvision.transforms.Compose([
 		transforms.Resize((image_height, image_width)),
-		transforms.ToTensor()
+		transforms.ToTensor(),
+		transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
 	]
 )
 
@@ -97,7 +102,8 @@ reconstruction_VGG16_test_transform = torchvision.transforms.Compose([
 
 reconstruction_VGG16_target_transform = torchvision.transforms.Compose([
 		transforms.Resize((image_height, image_width)),
-		transforms.ToTensor()
+		transforms.ToTensor(),
+		transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
 	]
 )
 
@@ -117,7 +123,8 @@ reconstruction_ResNet50_test_transform = torchvision.transforms.Compose([
 
 reconstruction_ResNet50_target_transform = torchvision.transforms.Compose([
 		transforms.Resize((image_height, image_width)),
-		transforms.ToTensor()
+		transforms.ToTensor(),
+		transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
 	]
 )
 
@@ -141,8 +148,8 @@ Classification_FeatureExtractor_Classifier = {
 }
 
 Reconstruction_Encoder_Decoder = {
-	"encoder": models.ImageEncoder(),
-	"decoder": models.ImageDecoder(2048),
+	"encoder": models.ImageEncoder(512),
+	"decoder": models.ImageDecoder(512),
 	"name": "Encoder_Decoder"
 }
 
@@ -166,7 +173,7 @@ Cross_Reconstruction_FeatureExtractor_Decoder = {
 }
 
 Cross_Classification_Encoder_Classifier = {
-	"feature_extractor": models.ImageEncoder(),
-	"classifier": models.Classifier(2048),
+	"feature_extractor": models.ImageEncoder(512),
+	"classifier": models.Classifier(512),
 	"name": "Encoder_Classifier"
 }

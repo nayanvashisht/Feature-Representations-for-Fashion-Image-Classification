@@ -147,15 +147,18 @@ class Classification_DataLoader_Module(pl.LightningDataModule):
 
 
 class Reconstruction_Fashion_Dataset(torch.utils.data.Dataset):
-	def __init__(self, 
+	def __init__(self,
+		dataset_path,
 		images_path,
 		input_transform,
 		target_transform
 	):
 		"""
 		Args:
+			dataset_path (str): Path to Dataset i.e csv file.
 			images_path (str): Path to Images folder.
 			transform: Image Transform.
+			target_transform: Target Transform.
 		"""
 		super().__init__()
 
@@ -166,21 +169,33 @@ class Reconstruction_Fashion_Dataset(torch.utils.data.Dataset):
 		# Images Path
 		self.images_path = images_path
 
+		# Loading Dataset
+		df = pd.read_csv(dataset_path)
+		self.length = df.shape[0]
+
+		# Inputs and Target Info
+		self.extract_inputs_targets(df)
+
+	def extract_inputs_targets(self,
+		df:pd.DataFrame
+	):
+		"""
+		Extracting Inputs and Targets of the Dataframe
+		"""
 		# Input Images Locations
-		self.image_filename = os.listdir(self.images_path)
-		self.length = len(self.image_filename)
+		self.image_filename = df["id"].to_numpy()
 
 	def __getitem__(self, idx):
-		while os.path.exists(os.path.join(self.images_path, self.image_filename[idx])) == False:
+		while os.path.exists(os.path.join(self.images_path, str(self.image_filename[idx])+".jpg")) == False:
 			idx = idx+1
 			if idx >= self.length:
 				idx = idx%self.length
 
-		X = Image.open(os.path.join(self.images_path, self.image_filename[idx])).convert("RGB")
+		X = Image.open(os.path.join(self.images_path, str(self.image_filename[idx])+".jpg")).convert("RGB")
 		X = self.input_transform(X)
 		X = X + (np.sqrt(0.1) * torch.randn(X.shape))
 
-		y = Image.open(os.path.join(self.images_path, self.image_filename[idx])).convert("RGB")
+		y = Image.open(os.path.join(self.images_path, str(self.image_filename[idx])+".jpg")).convert("RGB")
 		y = self.target_transform(y)
 
 		return X,y
@@ -192,6 +207,7 @@ class Reconstruction_Fashion_Dataset(torch.utils.data.Dataset):
 
 class Reconstruction_DataLoader_Module(pl.LightningDataModule):
 	def __init__(self,
+		dataset_path,
 		images_path,
 		setting,
 		transform_type,
@@ -224,9 +240,9 @@ class Reconstruction_DataLoader_Module(pl.LightningDataModule):
 
 		# Dataset
 		if setting == "train":
-			self.dataset = Reconstruction_Fashion_Dataset(images_path=images_path, input_transform=self.train_transforms, target_transform=self.target_transforms)
+			self.dataset = Reconstruction_Fashion_Dataset(dataset_path=dataset_path, images_path=images_path, input_transform=self.train_transforms, target_transform=self.target_transforms)
 		else:
-			self.dataset = Reconstruction_Fashion_Dataset(images_path=images_path, input_transform=self.test_transforms, target_transform=self.target_transforms)
+			self.dataset = Reconstruction_Fashion_Dataset(dataset_path=dataset_path, images_path=images_path, input_transform=self.test_transforms, target_transform=self.target_transforms)
 
 	def dataloader(self):
 			return DataLoader(self.dataset, batch_size=self.batch_size, num_workers=self.num_workers, shuffle=True)

@@ -106,7 +106,7 @@ def F1_Score(y_pred, y_true):
 	score3 = torchmetrics.functional.f1_score(torch.argmax(y_pred3, dim=1), y_true3, task="multiclass", num_classes=4)
 	score4 = torchmetrics.functional.f1_score(torch.argmax(y_pred4, dim=1), y_true4, task="multiclass", num_classes=27)
 
-	return 0.25*(score1 + score2 + score3 + score4)
+	return (65/99)*score1 + (3/99)*score2 + (4/99)*score3 + (27/99)*score4
 
 
 # Multi-Classification ROC
@@ -119,7 +119,7 @@ def AUROC(y_pred, y_true):
 	score3 = torchmetrics.functional.auroc(y_pred3, y_true3, task="multiclass", num_classes=4)
 	score4 = torchmetrics.functional.auroc(y_pred4, y_true4, task="multiclass", num_classes=27)
 
-	return 0.25*(score1 + score2 + score3 + score4)
+	return (65/99)*score1 + (3/99)*score2 + (4/99)*score3 + (27/99)*score4
 
 
 # Multi-Classification Accuracy
@@ -132,4 +132,4 @@ def Accuracy(y_pred, y_true):
 	score3 = torchmetrics.functional.accuracy(y_pred3, y_true3, task="multiclass", num_classes=4)
 	score4 = torchmetrics.functional.accuracy(y_pred4, y_true4, task="multiclass", num_classes=27)
 
-	return 0.25*(score1 + score2 + score3 + score4)
+	return (65/99)*score1 + (3/99)*score2 + (4/99)*score3 + (27/99)*score4
