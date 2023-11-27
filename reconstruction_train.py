@@ -33,18 +33,18 @@ class Model_LightningModule(pl.LightningModule):
 		self.args = args
 
 		# Model as Manual Arguments
-		self.encoder = config.Cross_Reconstruction_FeatureExtractor_Decoder["encoder"]
-		self.decoder = config.Cross_Reconstruction_FeatureExtractor_Decoder["decoder"]
+		self.encoder = config.Cross_Reconstruction_ResNet18_Decoder["encoder"]
+		self.decoder = config.Cross_Reconstruction_ResNet18_Decoder["decoder"]
 		self.save_hyperparameters()
 		
 		# Weights
-		ckpt = torch.load("checkpoints/FeatureExtractor_Classifier/best_model.ckpt")
-		feature_extractor_weights = dict(filter(lambda k: 'feature_extractor' in k[0], ckpt['state_dict'].items()))
-		feature_extractor_weights = {k.split('.', 1)[1]: v for k, v in feature_extractor_weights.items()}
-		self.encoder.load_state_dict(feature_extractor_weights, strict=True)
+		# ckpt = torch.load("checkpoints/FeatureExtractor_Classifier/best_model.ckpt")
+		# feature_extractor_weights = dict(filter(lambda k: 'feature_extractor' in k[0], ckpt['state_dict'].items()))
+		# feature_extractor_weights = {k.split('.', 1)[1]: v for k, v in feature_extractor_weights.items()}
+		# self.encoder.load_state_dict(feature_extractor_weights, strict=True)
 
-		for params in self.encoder.parameters():
-			params.requires_grad = False
+		# for params in self.encoder.parameters():
+		# 	params.requires_grad = False
 
 		# Metrics
 		self.VIF = VisualInformationFidelity(sigma_n_sq=0.1)
@@ -88,8 +88,8 @@ class Model_LightningModule(pl.LightningModule):
 # Main Function
 def main(args):
 	# Manual Arguments
-	model_name = config.Cross_Reconstruction_FeatureExtractor_Decoder["name"]
-	transform_type = "scratch"
+	model_name = config.Cross_Reconstruction_ResNet18_Decoder["name"]
+	transform_type = "resnet18"
 
 	# Get Datasets
 	Train_DataLoader_Module = datasets.Reconstruction_DataLoader_Module(
@@ -175,7 +175,7 @@ def main(args):
 
 	# Evaluate the Model
 	if args.evaluate:
-		print ("-"*25 + " Starting Evaluation on Vvalidation Set " + "-"*25)
+		print ("-"*25 + " Starting Evaluation on Validation Set " + "-"*25)
 		trainer.validate(Model, Valid_Dataloader, ckpt_path=args.resume_ckpt_path)
 
 		print ("-"*25 + " Starting Evaluation on Test Set " + "-"*25)
@@ -194,8 +194,7 @@ if __name__ == '__main__':
 
 """
 python3 reconstruction_train.py \
---train \
+--evaluate \
 --main_path "/home/krishna/Applied-ML-Project" \
---epochs 50 \
---batch_size 512
+--resume_ckpt_path "checkpoints/ResNet18_Decoder/best_model.ckpt"
 """

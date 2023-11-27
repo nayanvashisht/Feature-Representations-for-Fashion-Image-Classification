@@ -122,12 +122,12 @@ class Classification_DataLoader_Module(pl.LightningDataModule):
 		if transform_type == "scratch":
 			self.train_transforms = config.classification_scratch_train_transform
 			self.test_transforms = config.classification_scratch_test_transform
-		elif transform_type == "vgg16":
-			self.train_transforms = config.classification_VGG16_train_transform
-			self.test_transforms = config.classification_VGG16_test_transform
-		elif transform_type == "resnet50":
-			self.train_transforms = config.classification_ResNet50_train_transform
-			self.test_transforms = config.classification_ResNet50_test_transform
+		elif transform_type == "vgg13":
+			self.train_transforms = config.classification_VGG13_train_transform
+			self.test_transforms = config.classification_VGG13_test_transform
+		elif transform_type == "resnet18":
+			self.train_transforms = config.classification_ResNet18_train_transform
+			self.test_transforms = config.classification_ResNet18_test_transform
 		else:
 			assert False, "Invalid transform_type"
 
@@ -223,14 +223,14 @@ class Reconstruction_DataLoader_Module(pl.LightningDataModule):
 			self.train_transforms = config.reconstruction_scratch_train_transform
 			self.test_transforms = config.reconstruction_scratch_test_transform
 			self.target_transforms = config.reconstruction_scratch_target_transform
-		elif transform_type == "vgg16":
-			self.train_transforms = config.reconstruction_VGG16_train_transform
-			self.test_transforms = config.reconstruction_VGG16_test_transform
-			self.target_transforms = config.reconstruction_VGG16_target_transform
-		elif transform_type == "resnet50":
-			self.train_transforms = config.reconstruction_ResNet50_train_transform
-			self.test_transforms = config.reconstruction_ResNet50_test_transform
-			self.target_transforms = config.reconstruction_ResNet50_target_transform
+		elif transform_type == "vgg13":
+			self.train_transforms = config.reconstruction_VGG13_train_transform
+			self.test_transforms = config.reconstruction_VGG13_test_transform
+			self.target_transforms = config.reconstruction_VGG13_target_transform
+		elif transform_type == "resnet18":
+			self.train_transforms = config.reconstruction_ResNet18_train_transform
+			self.test_transforms = config.reconstruction_ResNet18_test_transform
+			self.target_transforms = config.reconstruction_ResNet18_target_transform
 		else:
 			assert False, "Invalid transform_type"
 

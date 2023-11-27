@@ -31,18 +31,18 @@ class Model_LightningModule(pl.LightningModule):
 		self.args = args
 
 		# Model as Manual Arguments
-		self.feature_extractor = config.Cross_Classification_Encoder_Classifier["feature_extractor"]
-		self.classifer = config.Cross_Classification_Encoder_Classifier["classifier"]
+		self.feature_extractor = config.Classification_ResNet18_Classifier["feature_extractor"]
+		self.classifer = config.Classification_ResNet18_Classifier["classifier"]
 		self.save_hyperparameters()
 
 		# Weights
-		ckpt = torch.load("checkpoints/Encoder_Decoder/best_model.ckpt")
-		feature_extractor_weights = dict(filter(lambda k: 'encoder' in k[0], ckpt['state_dict'].items()))
-		feature_extractor_weights = {k.split('.', 1)[1]: v for k, v in feature_extractor_weights.items()}
-		self.feature_extractor.load_state_dict(feature_extractor_weights, strict=True)
+		# ckpt = torch.load("checkpoints/Encoder_Decoder/best_model.ckpt")
+		# feature_extractor_weights = dict(filter(lambda k: 'encoder' in k[0], ckpt['state_dict'].items()))
+		# feature_extractor_weights = {k.split('.', 1)[1]: v for k, v in feature_extractor_weights.items()}
+		# self.feature_extractor.load_state_dict(feature_extractor_weights, strict=True)
 
-		for params in self.feature_extractor.parameters():
-			params.requires_grad = False
+		# for params in self.feature_extractor.parameters():
+		# 	params.requires_grad = False
 
 		# Loss
 		self.train_lossfn = losses.Classification_Loss()
@@ -82,15 +82,15 @@ class Model_LightningModule(pl.LightningModule):
 		
 	# Configure Optimizers
 	def configure_optimizers(self):
-		optimizer = torch.optim.Adam(itertools.chain(self.feature_extractor.parameters(), self.classifer.parameters()), lr=1e-4)
+		optimizer = torch.optim.Adam(itertools.chain(self.feature_extractor.parameters(), self.classifer.parameters()), lr=1e-3)
 		return [optimizer]
 
 
 # Main Function
 def main(args):
 	# Manual Arguments
-	model_name = config.Cross_Classification_Encoder_Classifier["name"]
-	transform_type = "scratch"
+	model_name = config.Classification_ResNet18_Classifier["name"]
+	transform_type = "resnet18"
 
 	# Get Datasets
 	Train_DataLoader_Module = datasets.Classification_DataLoader_Module(
@@ -193,8 +193,7 @@ if __name__ == '__main__':
 
 """
 python3 classification_train.py \
---train \
+--evaluate \
 --main_path "/home/krishna/Applied-ML-Project" \
---epochs 20 \
---batch_size 256
+--resume_ckpt_path "checkpoints/ResNet18_Classifier/best_model.ckpt" 
 """

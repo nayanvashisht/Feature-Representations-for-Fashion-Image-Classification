@@ -4,30 +4,30 @@ import torchvision
 from torchinfo import summary
 
 
-class VGG16(nn.Module):
+class VGG13(nn.Module):
 	def __init__(self) -> None:
 		super().__init__()
 
-		self.model = torchvision.models.vgg16(weights='DEFAULT')
+		self.model = torchvision.models.vgg13(weights='DEFAULT')
 		self.model = self.model.features
 		for param in self.model.parameters():
 			param.requires_grad = False
 		
-		self.AvgPool = nn.AvgPool2d(kernel_size=(2,2), stride=(2,2))
+		self.AdaptiveAvgPool2d = nn.AdaptiveAvgPool2d(output_size=(1,1))
 		self.flatten = nn.Flatten()
  
 	def forward(self, x):
 		x = self.model(x)
-		x = self.AvgPool(x)
+		x = self.AdaptiveAvgPool2d(x)
 		x = self.flatten(x)
 		return x
 	
 
-class ResNet50(nn.Module):
+class ResNet18(nn.Module):
 	def __init__(self) -> None:
 		super().__init__()
 
-		self.model = torchvision.models.resnet50(weights='DEFAULT')
+		self.model = torchvision.models.resnet18(weights='DEFAULT')
 		self.model.fc = nn.Identity()
 		for param in self.model.parameters():
 			param.requires_grad = False
@@ -61,7 +61,7 @@ class FeatureExtractor(nn.Module):
 		self.act7 = nn.ReLU()
 		self.conv8 = nn.Conv2d(512, 512, kernel_size=(3,3), stride=2, padding=1)
 		self.act8 = nn.ReLU()
-		self.conv9 = nn.Conv2d(512, 512, kernel_size=(3,3), stride=1, padding=1)
+		self.conv9 = nn.Conv2d(512, 512, kernel_size=(3,3), stride=2, padding=1)
 		self.act9 = nn.ReLU()
 		self.pool3 = nn.MaxPool2d(kernel_size=(2,2), stride=(2,2))
 
@@ -175,9 +175,9 @@ class Classifier(nn.Module):
 		self.classfication_head1 = nn.Sequential(
 			nn.Linear(in_features=input_features, out_features=512),
 			nn.ReLU(),
-			nn.Linear(in_features=512, out_features=512),
-			nn.ReLU(),
 			nn.Linear(in_features=512, out_features=256),
+			nn.ReLU(),
+			nn.Linear(in_features=256, out_features=256),
 			nn.ReLU(),
 			nn.Linear(in_features=256, out_features=65)
 		)
@@ -186,9 +186,9 @@ class Classifier(nn.Module):
 		self.classfication_head2 = nn.Sequential(
 			nn.Linear(in_features=input_features, out_features=256),
 			nn.ReLU(),
-			nn.Linear(in_features=256, out_features=64),
+			nn.Linear(in_features=256, out_features=128),
 			nn.ReLU(),
-			nn.Linear(in_features=64, out_features=64),
+			nn.Linear(in_features=128, out_features=64),
 			nn.ReLU(),
 			nn.Linear(in_features=64, out_features=3)
 		)
@@ -197,9 +197,9 @@ class Classifier(nn.Module):
 		self.classfication_head3 = nn.Sequential(
 			nn.Linear(in_features=input_features, out_features=256),
 			nn.ReLU(),
-			nn.Linear(in_features=256, out_features=64),
+			nn.Linear(in_features=256, out_features=128),
 			nn.ReLU(),
-			nn.Linear(in_features=64, out_features=64),
+			nn.Linear(in_features=128, out_features=64),
 			nn.ReLU(),
 			nn.Linear(in_features=64, out_features=4)
 		)
@@ -210,9 +210,9 @@ class Classifier(nn.Module):
 			nn.ReLU(),
 			nn.Linear(in_features=512, out_features=256),
 			nn.ReLU(),
-			nn.Linear(in_features=256, out_features=128),
+			nn.Linear(in_features=256, out_features=256),
 			nn.ReLU(),
-			nn.Linear(in_features=128, out_features=27)
+			nn.Linear(in_features=256, out_features=27)
 		)
 
 	def forward(self, x):
