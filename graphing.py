@@ -35,16 +35,16 @@ VG = VGG13()
 IE = ImageEncoder(512)
 
 # REPLACE with your checkpoint files
-vg_cp_path = r'C:\Users\surya\PycharmProjects\UT_Testing_Env\Applied-ML-Project-main\best_model_VGG13.ckpt'  # Replace with your .ckpt file path
+vg_cp_path = r'C:\Users\surya\PycharmProjects\UT_Testing_Env\Applied-ML-Project-main\new_checkpoints\VGG13_Classifier\best_model.ckpt'  # Replace with your .ckpt file path
 vg_cp = torch.load(vg_cp_path, map_location=torch.device('cpu'))
 
-fe_cp_path = r'C:\Users\surya\PycharmProjects\UT_Testing_Env\Applied-ML-Project-main\best_model_FE.ckpt'  # Replace with your .ckpt file path
+fe_cp_path = r'C:\Users\surya\PycharmProjects\UT_Testing_Env\Applied-ML-Project-main\new_checkpoints\FeatureExtractor_Classifier\best_model.ckpt'  # Replace with your .ckpt file path
 fe_cp = torch.load(fe_cp_path, map_location=torch.device('cpu'))
 
-ie_cp_path = r'C:\Users\surya\PycharmProjects\UT_Testing_Env\Applied-ML-Project-main\best_model_Encoder.ckpt'  # Replace with your .ckpt file path
+ie_cp_path = r'C:\Users\surya\PycharmProjects\UT_Testing_Env\Applied-ML-Project-main\new_checkpoints\Encoder_Classifier\best_model.ckpt'  # Replace with your .ckpt file path
 ie_cp = torch.load(ie_cp_path, map_location=torch.device('cpu'))
 
-rn50_cp_path = r'C:\Users\surya\PycharmProjects\UT_Testing_Env\Applied-ML-Project-main\best_model_RN18.ckpt'  # Replace with your .ckpt file path
+rn50_cp_path = r'C:\Users\surya\PycharmProjects\UT_Testing_Env\Applied-ML-Project-main\new_checkpoints\ResNet18_Classifier\best_model.ckpt'  # Replace with your .ckpt file path
 rn50_cp = torch.load(rn50_cp_path, map_location=torch.device('cpu'))
 
 # If the .ckpt file contains a state_dict
@@ -85,20 +85,22 @@ for key in list(model_weights):
 RN50.load_state_dict(model_weights)
 
 # Replace with your .csv file
-df = pd.read_csv(r'C:\Users\surya\PycharmProjects\UT_Testing_Env\test.csv')
+df = pd.read_csv(r'C:\Users\surya\PycharmProjects\UT_Testing_Env\Applied-ML-Project-main\new_checkpoints\test.csv')
 # Change to match columns of interest
-cols_of_interest = ['masterCategory_Apparel', 'masterCategory_Accessories', 'masterCategory_Footwear', 'masterCategory_Personal Care', ]
+target = 'articleType'
+cols_of_interest = [col for col in df.columns if target in col]
+print(cols_of_interest)
 id_set = {}
 for col in cols_of_interest:
     cur_rows = df[df[col] == 1]
-    id_set[col] = cur_rows.head(100)['id']
+    id_set[col] = cur_rows.head(20)['id']
 
 # female_rows = df[df['gender_Female'] == 1]
 # female_ids = female_rows.head(100)['id']
 #
 # unisex_rows = df[df['gender_Unisex'] == 1]
 # unisex_ids = unisex_rows.head(100)['id']
-
+print("Generating Features")
 vgg_features= {}
 rn50_features = {}
 encoder_features = {}
@@ -148,27 +150,27 @@ feature_extractor_tensor = feature_extractor_tensor.view(-1, 512)
 # Apply PCA to reduce the dimensionality
 num_dimensions = 2  # Choose the desired number of dimensions
 
-pca_vgg = TSNE(n_components=num_dimensions)
+pca_vgg = umap.UMAP(n_components=num_dimensions)
 vgg_np = vgg_tensor.detach().numpy()
 # pca_vgg.fit(vgg_np)
 
-pca_rn50 = TSNE(n_components=num_dimensions)
+pca_rn50 = umap.UMAP(n_components=num_dimensions)
 rn50_np = rn50_tensor.detach().numpy()
 # pca_rn50.fit(rn50_np)
 
-pca_encoder = TSNE(n_components=num_dimensions)
+pca_encoder = umap.UMAP(n_components=num_dimensions)
 encoder_np = encoder_tensor.detach().numpy()
 # pca_encoder.fit(encoder_np)
 
-pca_fe = TSNE(n_components=num_dimensions)
+pca_fe = umap.UMAP(n_components=num_dimensions)
 feature_extractor_np = feature_extractor_tensor.detach().numpy()
 # pca_fe.fit(feature_extractor_np)
-
 # Transform the data using each fitted PCA model
 transformed_vgg = {}
 transformed_rn50 = {}
 transformed_encoder = {}
 transformed_feature_extractor = {}
+print("Transforming Features")
 for col in id_set.keys():
     vgg_features_temp = np.vstack([tensor.detach().numpy() for tensor in vgg_features[col]])
     vgg_features_temp = vgg_features_temp.reshape(len(vgg_features_temp), -1)
@@ -193,25 +195,25 @@ for col in id_set.keys():
     plt.scatter(transformed_vgg[col][:, 0], transformed_vgg[col][:, 1], label=col)
 
 plt.title('VGG - Categorization')
-plt.legend()
+# plt.legend()
 plt.show()
 
 for col in id_set.keys():
     plt.scatter(transformed_rn50[col][:, 0], transformed_rn50[col][:, 1], label=col)
 plt.title('RN18 - Categorization')
-plt.legend()
+# plt.legend()
 plt.show()
 
 for col in id_set.keys():
     plt.scatter(transformed_encoder[col][:, 0], transformed_encoder[col][:, 1], label=col)
 plt.title('Encoder - Categorization')
-plt.legend()
+# plt.legend()
 plt.show()
 
 for col in id_set.keys():
     plt.scatter(transformed_feature_extractor[col][:, 0], transformed_feature_extractor[col][:, 1], label=col)
 plt.title('Feature Extractor - Categorization')
-plt.legend()
+# plt.legend()
 plt.show()
 
 
