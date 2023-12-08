@@ -19,7 +19,7 @@ print (sample_indices)
 for i in range(6):
 	img_path = "data/images/{}.jpg".format(sample_indices[i])
 	img = Image.open(img_path)
-	img.save("temp/imgs/Original-Sample-{}.png".format(i+1))
+	img.save("plots/imgs/Original-Sample-{}.png".format(i+1))
 
 	Info = [
 		("Encoder", models.ImageEncoder(512), models.ImageDecoder(512)),
@@ -64,4 +64,4 @@ for i in range(6):
 		y_pred = y_pred.detach().numpy().transpose(1,2,0)
 		
 		im = Image.fromarray(np.uint8(255.0*y_pred))
-		im.save("temp/imgs/{}-Reconstructed-Sample-{}.png".format(name, i+1))
+		im.save("plots/imgs/{}-Reconstructed-Sample-{}.png".format(name, i+1))

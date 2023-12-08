@@ -222,3 +222,12 @@ class Classifier(nn.Module):
 		y4 = self.classfication_head4(x)
 
 		return y1,y2,y3,y4
+	
+
+"""
+# Plotting Architectures
+from torchview import draw_graph
+
+Model = models.FeatureExtractor()
+model_graph = draw_graph(Model, input_data=torch.randn(1,3,128,128), device='cuda')
+model_graph.visual_graph"""

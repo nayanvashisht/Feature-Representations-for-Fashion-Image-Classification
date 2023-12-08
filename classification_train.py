@@ -31,8 +31,8 @@ class Model_LightningModule(pl.LightningModule):
 		self.args = args
 
 		# Model as Manual Arguments
-		self.feature_extractor = config.Classification_ResNet18_Classifier["feature_extractor"]
-		self.classifer = config.Classification_ResNet18_Classifier["classifier"]
+		self.feature_extractor = config.Cross_Classification_Encoder_Classifier["feature_extractor"]
+		self.classifer = config.Cross_Classification_Encoder_Classifier["classifier"]
 		self.save_hyperparameters()
 
 		# Weights
@@ -89,8 +89,8 @@ class Model_LightningModule(pl.LightningModule):
 # Main Function
 def main(args):
 	# Manual Arguments
-	model_name = config.Classification_ResNet18_Classifier["name"]
-	transform_type = "resnet18"
+	model_name = config.Cross_Classification_Encoder_Classifier["name"]
+	transform_type = "scratch"
 
 	# Get Datasets
 	Train_DataLoader_Module = datasets.Classification_DataLoader_Module(
@@ -195,5 +195,5 @@ if __name__ == '__main__':
 python3 classification_train.py \
 --evaluate \
 --main_path "/home/krishna/Applied-ML-Project" \
---resume_ckpt_path "checkpoints/ResNet18_Classifier/best_model.ckpt" 
+--resume_ckpt_path "checkpoints/Encoder_Classifier/best_model.ckpt" 
 """
